@@ -1,22 +1,10 @@
+# Arch
+.env
+.env.example
+
 # Python
 __pycache__/
-*.py[cod]
-*$py.class
-*.so
-.Python
-.env
-.venv
-env/
-venv/
-ENV/
-env.bak/
-venv.bak/
-
-# IDE
-.vscode/
-.idea/
-*.swp
-*.swo
+pkgs/
 
 # Testing
 .pytest_cache/
@@ -25,7 +13,3 @@ htmlcov/
 
 # Docker
 *.log
-
-# OS
-.DS_Store
-Thumbs.db
