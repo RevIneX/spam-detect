@@ -6,11 +6,12 @@ pkgs.mkShell {
     python311
     python311Packages.pip
     python311Packages.virtualenv
-    python311Packages.psycopg2
+    stdenv.cc.cc.lib
   ];
 
   shellHook = ''
-    echo "[ OK ] Python"
+    export LD_LIBRARY_PATH="${pkgs.stdenv.cc.cc.lib}/lib:$LD_LIBRARY_PATH"
+    echo "[ OK ] Python 3.11"
     echo "[ OK ] PostgreSQL"
   '';
 }
