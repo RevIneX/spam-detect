@@ -12,3 +12,4 @@ httpx==0.25.1
 pytest-cov==4.1.0
 bandit==1.7.6
 pytest-asyncio==0.23.5
+nvidia-cudnn-cu12==8.9.2.26
