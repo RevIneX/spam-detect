@@ -4,9 +4,13 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     gcc \
     libpq-dev \
     && rm -rf /var/lib/apt/lists/*
-RUN pip config set global.index-url https://pypi.org/simple
+RUN pip install --no-cache-dir \
+    torch==2.1.0 \
+    transformers==4.35.0 \
+    numpy==1.26.0
 COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+RUN --mount=type=cache,target=/root/.cache/pip \
+    pip install -r requirements.txt
 COPY ./app ./app
 ENV PYTHONPATH=/app
 EXPOSE 1001
