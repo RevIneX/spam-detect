@@ -1,0 +1,142 @@
+{
+  "info": {
+    "name": "AI Spam Detector API",
+    "description": "API для определения спама в тексте с сохранением истории",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Health Check",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:1001/health",
+          "host": ["localhost"],
+          "port": "1001",
+          "path": ["health"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Analyze - Spam",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "X-APIKEY",
+            "value": "000000-000000-000000-00000-000000"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"text\": \"CONGRATULATIONS! You won $1,000,000! Click here to claim your prize now!\"\n}"
+        },
+        "url": {
+          "raw": "http://localhost:1001/analyze",
+          "host": ["localhost"],
+          "port": "1001",
+          "path": ["analyze"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Analyze - Ham (Not Spam)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "X-APIKEY",
+            "value": "000000-000000-000000-00000-000000"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"text\": \"Hey, are we still meeting for coffee tomorrow at 3pm?\"\n}"
+        },
+        "url": {
+          "raw": "http://localhost:1001/analyze",
+          "host": ["localhost"],
+          "port": "1001",
+          "path": ["analyze"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Analyze - Empty Text (Error)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "X-APIKEY",
+            "value": "000000-000000-000000-00000-000000"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"text\": \"\"\n}"
+        },
+        "url": {
+          "raw": "http://localhost:1001/analyze",
+          "host": ["localhost"],
+          "port": "1001",
+          "path": ["analyze"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Get History (with pagination)",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:1001/history?page=1&limit=10",
+          "host": ["localhost"],
+          "port": "1001",
+          "path": ["history"],
+          "query": [
+            {
+              "key": "page",
+              "value": "1"
+            },
+            {
+              "key": "limit",
+              "value": "10"
+            }
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Get History Item by ID",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:1001/history/1",
+          "host": ["localhost"],
+          "port": "1001",
+          "path": ["history", "1"]
+        }
+      },
+      "response": []
+    }
+  ]
+}
