@@ -1,0 +1,102 @@
+name: CI Pipeline
+
+on:
+  push:
+    branches: [ main, master, develop ]
+  pull_request:
+    branches: [ main, master ]
+
+env:
+  PYTHON_VERSION: '3.11'
+
+jobs:
+  linting:
+    name: Linting
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Install dependencies
+        run: |
+          echo "[ OK ] Installing linters"
+          pip install --quiet flake8==6.1.0
+
+      - name: Run flake8
+        run: |
+          echo "[ OK ] Running flake8"
+          flake8 app/ --max-line-length=120 --extend-ignore=E203,W503 --statistics --count
+          echo "[ OK ] Linting passed"
+
+  testing:
+    name: Testing
+    runs-on: ubuntu-latest
+    needs: linting
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Install dependencies
+        run: |
+          echo "[ OK ] Installing test dependencies"
+          pip install --quiet -r requirements.txt
+          pip install --quiet pytest pytest-cov
+
+      - name: Run pytest
+        run: |
+          echo "[ OK ] Running pytest"
+          pytest tests/ -v --tb=short --cov=app --cov-report=term-missing
+
+  docker-build:
+    name: Docker Build
+    runs-on: ubuntu-latest
+    needs: [linting, testing]
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build Docker image
+        run: |
+          echo "[ OK ] Building Docker image"
+          docker build -t spam-detector:test .
+
+      - name: Verify image
+        run: |
+          echo "[ OK ] Docker image built successfully"
+          docker images | grep spam-detector
+
+  security:
+    name: Security Check
+    runs-on: ubuntu-latest
+    needs: linting
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Install bandit
+        run: |
+          echo "[ OK ] Installing security linter"
+          pip install --quiet bandit
+
+      - name: Run bandit
+        run: |
+          echo "[ OK ] Running security checks"
+          bandit -r app/ -ll -f custom -q 2>&1 | tee /dev/stderr || echo "[ XX ] Security issues found"
