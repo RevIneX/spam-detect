@@ -1,4 +1,4 @@
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ConfigDict
 from datetime import datetime
 
 class AnalyzeRequest(BaseModel):
@@ -14,6 +14,8 @@ class HistoryResponse(BaseModel):
     result_text: str
     model_name: str
     created_at: datetime
+    
+    model_config = ConfigDict(from_attributes=True)
 
 class HealthResponse(BaseModel):
     status: str
