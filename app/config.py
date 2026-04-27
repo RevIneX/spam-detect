@@ -7,10 +7,10 @@ load_dotenv()
 class Config:
     DATABASE_URL = os.getenv(
         "DATABASE_URL",
-        "postgresql://postgres:postgres@localhost:5432/spam-detect")
+        "postgresql://postgres:postgres@postgres:5432/spam-detect")
     MODEL_NAME = os.getenv(
         "MODEL_NAME",
-        "mrm8488/bert-tiny-finetuned-sms-spam-detection")
+        "ssheroz/spam-email-classifier-roberta-r4")
     API_KEY = os.getenv("API_KEY", "")
     MAX_TEXT_LENGTH = 500
 
