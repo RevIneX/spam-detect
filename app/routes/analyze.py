@@ -1,7 +1,7 @@
 from fastapi import APIRouter, HTTPException, Depends
 from sqlalchemy.orm import Session
 from app.schemas import AnalyzeRequest, AnalyzeResponse
-from app.ml_service import spam_detector
+from app.ml_service import get_spam_detector
 from app.models import RequestHistory
 from app.db import get_db
 from app.config import config
@@ -24,6 +24,7 @@ def analyze(request: AnalyzeRequest, db: Session = Depends(get_db)):
             detail=f"Text too long. Max {config.MAX_TEXT_LENGTH} characters")
 
     try:
+        spam_detector = get_spam_detector()
         result = spam_detector.predict(text)
 
         history = RequestHistory(

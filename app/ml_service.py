@@ -19,31 +19,24 @@ class SpamDetector:
         self._load_model()
 
     def _load_model(self):
-        try:
-            logger.info(f"Loading base model: {self.base_model_name}")
-            self.tokenizer = AutoTokenizer.from_pretrained(
-                self.base_model_name)
-            if self.tokenizer.pad_token is None:
-                self.tokenizer.pad_token = self.tokenizer.eos_token
+        logger.info(f"Loading base model: {self.base_model_name}")
+        self.tokenizer = AutoTokenizer.from_pretrained(self.base_model_name)
+        if self.tokenizer.pad_token is None:
+            self.tokenizer.pad_token = self.tokenizer.eos_token
 
-            logger.info("Loading base model for sequence classification")
-            base_model = AutoModelForSequenceClassification.from_pretrained(
-                self.base_model_name,
-                num_labels=2,
-                problem_type="single_label_classification"
-            )
+        logger.info("Loading base model for sequence classification")
+        base_model = AutoModelForSequenceClassification.from_pretrained(
+            self.base_model_name,
+            num_labels=2,
+            problem_type="single_label_classification"
+        )
 
-            logger.info(f"Loading LoRA adapter: {self.model_name_or_path}")
-            self.model = PeftModel.from_pretrained(
-                base_model, self.model_name_or_path)
-
-            self.model.to(self.device)
-            self.model.eval()
-            logger.info(f"Model loaded successfully on {self.device}")
-
-        except Exception as e:
-            logger.error(f"Failed to load model: {e}")
-            raise
+        logger.info(f"Loading LoRA adapter: {self.model_name_or_path}")
+        self.model = PeftModel.from_pretrained(
+            base_model, self.model_name_or_path)
+        self.model.to(self.device)
+        self.model.eval()
+        logger.info(f"Model loaded successfully on {self.device}")
 
     def predict(self, text: str):
         if self.model is None or self.tokenizer is None:
@@ -73,4 +66,11 @@ class SpamDetector:
         }
 
 
-spam_detector = SpamDetector()
+_spam_detector = None
+
+
+def get_spam_detector():
+    global _spam_detector
+    if _spam_detector is None:
+        _spam_detector = SpamDetector()
+    return _spam_detector
