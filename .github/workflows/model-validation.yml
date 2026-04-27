@@ -1,0 +1,58 @@
+name: Model Validation
+
+on:
+  push:
+    branches: [ main, spam-detect-prototype ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  validate-model:
+    name: Run metrics test
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Start containers
+        run: |
+          docker compose up -d --build
+
+      - name: Wait for backend
+        run: |
+          echo "Waiting for backend to be ready..."
+          for i in {1..30}; do
+            if curl -s http://localhost:1001/health > /dev/null; then
+              echo "Backend is ready"
+              break
+            fi
+            echo "Attempt $i/30 - waiting..."
+            sleep 2
+          done
+
+      - name: Install Python dependencies for metrics
+        run: |
+          pip install requests scikit-learn tabulate
+
+      - name: Run test_metrics.py
+        id: metrics
+        continue-on-error: true
+        run: python tests/test_metrics.py
+
+      - name: Stop containers
+        if: always()
+        run: docker compose down
+
+      - name: Check metrics result
+        if: steps.metrics.outcome == 'failure'
+        run: |
+          echo "[ XX ]Model validation failed"
+          exit 1
+
+      - name: Success
+        if: steps.metrics.outcome == 'success'
+        run: echo "[ OK ] Model validation passed"
