@@ -15,6 +15,14 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      - name: Create .env file
+        run: |
+          cp .env.example .env
+          echo "DATABASE_URL=postgresql://postgres:postgres@postgres:5432/spam-detect" >> .env
+          echo "MODEL_NAME=ssheroz/spam-email-classifier-roberta-r4" >> .env
+          echo "API_KEY=ci-test-key" >> .env
+          cat .env
+
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
@@ -50,7 +58,7 @@ jobs:
       - name: Check metrics result
         if: steps.metrics.outcome == 'failure'
         run: |
-          echo "[ XX ]Model validation failed"
+          echo "[ XX ] Model validation failed"
           exit 1
 
       - name: Success
