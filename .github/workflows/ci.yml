@@ -2,9 +2,9 @@ name: CI Pipeline
 
 on:
   push:
-    branches: [ main, master, develop ]
+    branches: [ main, master, develop, spam-detect-prototype ]
   pull_request:
-    branches: [ main, master ]
+    branches: [ main, master, spam-detect-prototype ]
 
 env:
   PYTHON_VERSION: '3.11'
@@ -16,22 +16,24 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-
       - name: Setup Python
         uses: actions/setup-python@v5
         with:
           python-version: ${{ env.PYTHON_VERSION }}
-
+      - name: Cache pip
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-lint-${{ hashFiles('requirements.txt', 'requirements-ml.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-lint-
       - name: Install dependencies
         run: |
-          echo "[ OK ] Installing linters"
           pip install --quiet flake8==6.1.0
-
+          pip install --quiet -r requirements-ml.txt
+          pip install --quiet -r requirements.txt
       - name: Run flake8
-        run: |
-          echo "[ OK ] Running flake8"
-          flake8 app/ --max-line-length=120 --extend-ignore=E203,W503 --statistics --count
-          echo "[ OK ] Linting passed"
+        run: flake8 app/ --max-line-length=120 --extend-ignore=E203,W503 --statistics --count
 
   testing:
     name: Testing
@@ -40,22 +42,24 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-
       - name: Setup Python
         uses: actions/setup-python@v5
         with:
           python-version: ${{ env.PYTHON_VERSION }}
-
+      - name: Cache pip
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-test-${{ hashFiles('requirements.txt', 'requirements-ml.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-test-
       - name: Install dependencies
         run: |
-          echo "[ OK ] Installing test dependencies"
+          pip install --quiet -r requirements-ml.txt
           pip install --quiet -r requirements.txt
           pip install --quiet pytest pytest-cov
-
       - name: Run pytest
-        run: |
-          echo "[ OK ] Running pytest"
-          pytest tests/ -v --tb=short --cov=app --cov-report=term-missing
+        run: pytest tests/ -v --tb=short --cov=app --cov-report=term-missing
 
   docker-build:
     name: Docker Build
@@ -64,19 +68,19 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
-
+      - name: Cache Docker layers
+        uses: actions/cache@v4
+        with:
+          path: /tmp/.buildx-cache
+          key: ${{ runner.os }}-buildx-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-buildx-
       - name: Build Docker image
-        run: |
-          echo "[ OK ] Building Docker image"
-          docker build -t spam-detector:test .
-
+        run: docker build -t spam-detector:test .
       - name: Verify image
-        run: |
-          echo "[ OK ] Docker image built successfully"
-          docker images | grep spam-detector
+        run: docker images | grep spam-detector
 
   security:
     name: Security Check
@@ -85,18 +89,20 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-
       - name: Setup Python
         uses: actions/setup-python@v5
         with:
           python-version: ${{ env.PYTHON_VERSION }}
-
+      - name: Cache pip
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-sec-${{ hashFiles('requirements.txt', 'requirements-ml.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-sec-
       - name: Install bandit
         run: |
-          echo "[ OK ] Installing security linter"
           pip install --quiet bandit
-
+          pip install --quiet -r requirements-ml.txt
       - name: Run bandit
-        run: |
-          echo "[ OK ] Running security checks"
-          bandit -r app/ -ll -f custom -q 2>&1 | tee /dev/stderr || echo "[ XX ] Security issues found"
+        run: bandit -r app/ -ll -f custom -q 2>&1 | tee /dev/stderr || echo "[ XX ] Security issues found"
