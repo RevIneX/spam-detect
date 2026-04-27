@@ -10,19 +10,22 @@ import logging
 router = APIRouter()
 logger = logging.getLogger(__name__)
 
+
 @router.post("/analyze", response_model=AnalyzeResponse)
 def analyze(request: AnalyzeRequest, db: Session = Depends(get_db)):
     text = request.text.strip()
-    
+
     if not text:
         raise HTTPException(status_code=400, detail="Text cannot be empty")
-    
+
     if len(text) > config.MAX_TEXT_LENGTH:
-        raise HTTPException(status_code=400, detail=f"Text too long. Max {config.MAX_TEXT_LENGTH} characters")
-    
+        raise HTTPException(
+            status_code=400,
+            detail=f"Text too long. Max {config.MAX_TEXT_LENGTH} characters")
+
     try:
         result = spam_detector.predict(text)
-        
+
         history = RequestHistory(
             input_text=text,
             result_text=f"{result['result']}:{result['score']}",
@@ -30,9 +33,9 @@ def analyze(request: AnalyzeRequest, db: Session = Depends(get_db)):
         )
         db.add(history)
         db.commit()
-        
+
         return AnalyzeResponse(result=result["result"], score=result["score"])
-    
+
     except Exception as e:
         logger.error(f"Prediction failed: {e}")
         raise HTTPException(status_code=500, detail=f"Model error: {str(e)}")

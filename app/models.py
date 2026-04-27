@@ -2,6 +2,7 @@ from sqlalchemy import Column, Integer, String, Text, DateTime
 from datetime import datetime
 from app.db import Base
 
+
 class RequestHistory(Base):
     __tablename__ = "requests_history"
 

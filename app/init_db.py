@@ -4,6 +4,7 @@ from app.models import Base
 
 logger = logging.getLogger(__name__)
 
+
 def init_db():
     try:
         Base.metadata.create_all(bind=engine)
@@ -11,6 +12,7 @@ def init_db():
     except Exception as e:
         logger.error(f"[ XX ] {e}")
         raise
+
 
 if __name__ == "__main__":
     init_db()

@@ -7,6 +7,7 @@ from app.db import get_db
 
 router = APIRouter()
 
+
 @router.get("/history")
 def get_history(
     page: int = Query(1, ge=1),
@@ -14,12 +15,15 @@ def get_history(
     db: Session = Depends(get_db)
 ):
     offset = (page - 1) * limit
-    items = db.query(RequestHistory).order_by(desc(RequestHistory.created_at)).offset(offset).limit(limit).all()
+    items = db.query(RequestHistory).order_by(
+        desc(RequestHistory.created_at)).offset(offset).limit(limit).all()
     return [HistoryResponse.model_validate(item) for item in items]
+
 
 @router.get("/history/{history_id}")
 def get_history_item(history_id: int, db: Session = Depends(get_db)):
-    item = db.query(RequestHistory).filter(RequestHistory.id == history_id).first()
+    item = db.query(RequestHistory).filter(
+        RequestHistory.id == history_id).first()
     if not item:
         raise HTTPException(status_code=404, detail="History entry not found")
     return HistoryResponse.model_validate(item)
