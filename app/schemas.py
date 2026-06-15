@@ -3,7 +3,7 @@ from datetime import datetime
 
 
 class AnalyzeRequest(BaseModel):
-    text: str = Field(..., min_length=1, max_length=500)
+    text: str = Field(..., min_length=1, max_length=5000)
 
 
 class AnalyzeResponse(BaseModel):
