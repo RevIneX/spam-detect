@@ -12,7 +12,7 @@ class Config:
         "MODEL_NAME",
         "ssheroz/spam-email-classifier-roberta-r4")
     API_KEY = os.getenv("API_KEY", "")
-    MAX_TEXT_LENGTH = 500
+    MAX_TEXT_LENGTH = 5000
 
 
 config = Config()
