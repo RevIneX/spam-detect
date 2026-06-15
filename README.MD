@@ -1,0 +1,1 @@
+[![CI Pipeline](https://github.com/RevIneX/spam-detect/actions/workflows/ci.yml/badge.svg?branch=spam-detect-prototype&event=push)](https://github.com/RevIneX/spam-detect/actions/workflows/ci.yml)
