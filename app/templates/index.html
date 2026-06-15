@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>SPAM DETECTOR / AI</title>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { background: #050505; font-family: 'JetBrains Mono', monospace; color: #C8C8C8; font-size: 13px; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
+        .app { height: 100vh; display: flex; flex-direction: column; padding: 20px; }
+        .top-bar { display: flex; justify-content: space-between; align-items: center; height: 36px; margin-bottom: 16px; }
+        .logo { font-size: 12px; letter-spacing: 2px; text-transform: uppercase; }
+        .logo .white { color: #EAEAEA; }
+        .logo .slash { color: #707070; }
+        .logo .grey { color: #707070; }
+        .status-badge { font-size: 10px; letter-spacing: 1px; color: #707070; display: flex; align-items: center; gap: 6px; }
+        .status-badge .square { width: 10px; height: 10px; background: #EAEAEA; }
+        .divider { height: 1px; background: #1B1B1B; margin-bottom: 24px; }
+        .main-grid { display: flex; gap: 0; flex: 1; min-height: 0; }
+        .left-panel { flex: 1; display: flex; flex-direction: column; gap: 20px; padding-right: 20px; min-height: 0; }
+        .right-panel { flex: 1; display: flex; flex-direction: column; padding-left: 20px; min-height: 0; }
+        .vertical-divider { width: 1px; background: #1C1C1C; }
+        .section-title { font-size: 11px; letter-spacing: 2px; text-transform: uppercase; color: #707070; margin-bottom: 12px; }
+        .input-card { background: #0B0B0B; border: 1px solid #1C1C1C; }
+        textarea { width: 100%; height: 170px; background: #111111; border: 1px solid #222; color: #C8C8C8; font-family: 'JetBrains Mono', monospace; font-size: 13px; padding: 14px; resize: none; outline: none; }
+        .input-footer { display: flex; justify-content: space-between; align-items: center; padding: 10px 14px; border-top: 1px solid #1C1C1C; }
+        .cmd-hint { font-size: 11px; color: #707070; }
+        .analyze-btn { width: 90px; height: 24px; background: #F0F0F0; color: #222; border: none; font-family: monospace; font-size: 11px; font-weight: 500; display: flex; align-items: center; justify-content: center; gap: 6px; cursor: pointer; }
+        .analyze-btn:hover { background: #e0e0e0; }
+        .result-card { background: #0B0B0B; border: 1px solid #1C1C1C; }
+        .result-inner { padding: 14px; }
+        .result-header { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 20px; }
+        .result-label { display: flex; align-items: center; gap: 8px; }
+        .square-red { width: 10px; height: 10px; background: #E28D8D; }
+        .square-green { width: 10px; height: 10px; background: #88D9B2; }
+        .spam-text { color: #E28D8D; font-weight: 600; }
+        .ham-text { color: #88D9B2; font-weight: 600; }
+        .result-percent { font-size: 34px; font-weight: 600; color: #EAEAEA; }
+        .progress-bar { height: 8px; background: #1D1D1D; margin: 0 0 14px 0; }
+        .progress-fill { height: 100%; width: 0%; transition: width 0.65s cubic-bezier(0.22, 1, 0.36, 1); }
+        .progress-fill.red { background: #E28D8D; }
+        .progress-fill.green { background: #88D9B2; }
+        .result-footer { display: flex; justify-content: space-between; font-size: 10px; color: #707070; }
+        .stats-wrapper { margin-top: auto; }
+        .stats-panel { display: flex; border-top: 1px solid #1C1C1C; background: #0B0B0B; }
+        .stat-item { flex: 1; text-align: center; padding: 14px 0; border-right: 1px solid #1C1C1C; }
+        .stat-item:last-child { border-right: none; }
+        .stat-number { font-size: 22px; font-weight: 500; color: #EFEFEF; }
+        .stat-label { font-size: 11px; letter-spacing: 1px; color: #666; }
+        .history-header { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 18px; }
+        .refresh-link { font-size: 11px; color: #707070; cursor: pointer; }
+        .history-list { display: flex; flex-direction: column; gap: 0; overflow-y: auto; flex: 1; }
+        .history-item { border-bottom: 1px solid #1C1C1C; padding: 14px 0; animation: fadeIn 0.4s cubic-bezier(0.16, 1, 0.3, 1); }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+        .history-item-header { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 10px; }
+        .history-tag { display: flex; align-items: center; gap: 6px; }
+        .history-meta { font-size: 11px; color: #707070; }
+        .history-progress { height: 4px; background: #1D1D1D; margin: 10px 0; }
+        .history-progress-fill { height: 100%; width: 0%; background: #7A7A7A; transition: width 0.65s cubic-bezier(0.22, 1, 0.36, 1); }
+        .history-message { font-size: 11px; color: #7A7A7A; word-break: break-word; white-space: pre-wrap; }
+        .empty-history { text-align: center; color: #707070; padding: 20px; }
+        .loading { opacity: 0.5; transform: translateY(4px); transition: all 0.3s ease; }
+    </style>
+</head>
+<body>
+<div class="app">
+    <div class="top-bar">
+        <div class="logo"><span class="white">SPAM DETECTOR</span><span class="slash"> / </span><span class="grey">AI</span></div>
+        <div class="status-badge"><span class="square"></span> ROBERTA-LORA <span style="color:#707070;">· ACTIVE</span></div>
+    </div>
+    <div class="divider"></div>
+    <div class="main-grid">
+        <div class="left-panel">
+            <div class="input-card">
+                <textarea id="inputText" rows="5" spellcheck="false" placeholder="НАПИШИ ИЛИ ВСТАВЬ СЮДА ЛЮБОЙ ТЕКСТ ДЛЯ АНАЛИЗА."></textarea>
+                <div class="input-footer">
+                    <span class="cmd-hint">⌘+ENTER TO RUN</span>
+                    <button class="analyze-btn" id="analyzeBtn">✈ ANALYZE</button>
+                </div>
+            </div>
+            <div class="result-card">
+                <div class="result-inner" id="resultInner">
+                    <div class="section-title">РЕЗУЛЬТАТ</div>
+                    <div class="result-header">
+                        <div class="result-label">
+                            <span id="resultSquare" class="square-red"></span>
+                            <span id="resultLabel" class="spam-text">СПАМ</span>
+                        </div>
+                        <div class="result-percent" id="resultPercent">87.0000%</div>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-fill red" id="progressFill"></div>
+                    </div>
+                    <div class="result-footer">
+                        <span>УВЕРЕННОСТЬ</span>
+                        <span id="confidenceDesc">Нежелательное / вредоносное</span>
+                    </div>
+                </div>
+            </div>
+            <div class="stats-wrapper">
+                <div class="stats-panel">
+                    <div class="stat-item"><div class="stat-number" id="analyzedCount">0</div><div class="stat-label">АНАЛИЗИРОВАНО</div></div>
+                    <div class="stat-item"><div class="stat-number" id="spamCount">0</div><div class="stat-label">СПАМ</div></div>
+                    <div class="stat-item"><div class="stat-number" id="legitCount">0</div><div class="stat-label">ЛЕГИТНО</div></div>
+                </div>
+            </div>
+        </div>
+        <div class="vertical-divider"></div>
+        <div class="right-panel">
+            <div class="history-header"><div class="section-title" style="margin-bottom:0;">ИСТОРИЯ</div><div class="refresh-link" id="refreshHistoryBtn">↻ REFRESH</div></div>
+            <div id="historyContainer" class="history-list"><div class="empty-history">загрузка...</div></div>
+        </div>
+    </div>
+</div>
+<script>
+(function() {
+    const inputEl = document.getElementById('inputText');
+    const analyzeBtn = document.getElementById('analyzeBtn');
+    const resultInner = document.getElementById('resultInner');
+    const resultLabel = document.getElementById('resultLabel');
+    const resultSquare = document.getElementById('resultSquare');
+    const resultPercent = document.getElementById('resultPercent');
+    const progressFill = document.getElementById('progressFill');
+    const confidenceDesc = document.getElementById('confidenceDesc');
+    const analyzedSpan = document.getElementById('analyzedCount');
+    const spamSpan = document.getElementById('spamCount');
+    const legitSpan = document.getElementById('legitCount');
+    const historyDiv = document.getElementById('historyContainer');
+
+    function formatDate(iso) {
+        const d = new Date(iso);
+        return d.getFullYear() + '/' + (d.getMonth()+1).toString().padStart(2,'0') + '/' + d.getDate().toString().padStart(2,'0') + ' ' + d.getHours().toString().padStart(2,'0') + ':' + d.getMinutes().toString().padStart(2,'0');
+    }
+
+    function escapeHtml(s) {
+        return s.replace(/[&<>]/g, function(m) {
+            return m === '&' ? '&amp;' : (m === '<' ? '&lt;' : '&gt;');
+        });
+    }
+
+    async function fetchHistory() {
+        try {
+            const res = await fetch('/history?limit=10');
+            const data = await res.json();
+            analyzedSpan.innerText = data.length;
+            const spamTotal = data.filter(i => i.result_text.startsWith('SPAM')).length;
+            spamSpan.innerText = spamTotal;
+            legitSpan.innerText = data.length - spamTotal;
+            if (!data.length) {
+                historyDiv.innerHTML = '<div class="empty-history">нет записей</div>';
+                return;
+            }
+            let html = '';
+            for (let i = 0; i < data.length; i++) {
+                const item = data[i];
+                const isSpam = item.result_text.startsWith('SPAM');
+                const score = parseFloat(item.result_text.split(':')[1]) || 0;
+                const percent = (score * 100).toFixed(4);
+                const dateStr = formatDate(item.created_at);
+                const fullText = item.input_text;
+                html += '<div class="history-item">' +
+                    '<div class="history-item-header">' +
+                        '<div class="history-tag">' +
+                            '<div style="width:8px;height:8px;background:' + (isSpam ? '#E28D8D' : '#88D9B2') + ';"></div>' +
+                            '<span style="color:' + (isSpam ? '#E28D8D' : '#88D9B2') + '; font-weight:500;">' + (isSpam ? 'СПАМ' : 'ЛЕГИТНО') + '</span>' +
+                        '</div>' +
+                        '<div class="history-meta">' + percent + '%   ' + dateStr + '</div>' +
+                    '</div>' +
+                    '<div class="history-progress"><div class="history-progress-fill" style="width:' + (score*100) + '%;"></div></div>' +
+                    '<div class="history-message">' + escapeHtml(fullText) + '</div>' +
+                '</div>';
+            }
+            historyDiv.innerHTML = html;
+        } catch(e) {
+            historyDiv.innerHTML = '<div class="empty-history">ошибка загрузки</div>';
+        }
+    }
+
+    async function analyzeText() {
+        const text = inputEl.value.trim();
+        if (!text) return;
+        resultInner.classList.add('loading');
+        analyzeBtn.disabled = true;
+        try {
+            const response = await fetch('/analyze', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ text: text })
+            });
+            if (!response.ok) {
+                let errorMsg = 'HTTP ' + response.status;
+                try {
+                    const errData = await response.json();
+                    errorMsg = errData.detail || errorMsg;
+                    if (typeof errorMsg === 'object') errorMsg = JSON.stringify(errorMsg);
+                } catch(e) {}
+                throw new Error(errorMsg);
+            }
+            const data = await response.json();
+            const isSpam = data.result === 'SPAM';
+            const percent = (data.score * 100).toFixed(4);
+            resultLabel.innerText = isSpam ? 'СПАМ' : 'ЛЕГИТНО';
+            resultLabel.className = isSpam ? 'spam-text' : 'ham-text';
+            resultSquare.className = isSpam ? 'square-red' : 'square-green';
+            resultPercent.innerText = percent + '%';
+            progressFill.className = 'progress-fill ' + (isSpam ? 'red' : 'green');
+            progressFill.style.width = percent + '%';
+            confidenceDesc.innerText = isSpam ? 'Нежелательное / вредоносное' : 'Безопасное / легитимное';
+            await fetchHistory();
+        } catch(e) {
+            console.error(e);
+            alert('Ошибка: ' + e.message);
+        } finally {
+            resultInner.classList.remove('loading');
+            analyzeBtn.disabled = false;
+        }
+    }
+
+    analyzeBtn.addEventListener('click', analyzeText);
+    document.getElementById('refreshHistoryBtn').addEventListener('click', fetchHistory);
+    inputEl.addEventListener('keydown', function(e) {
+        if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+            e.preventDefault();
+            analyzeText();
+        }
+    });
+    fetchHistory();
+})();
+</script>
+</body>
+</html>
